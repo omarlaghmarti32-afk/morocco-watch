@@ -34,9 +34,9 @@
 - يومياً عند الساعة 06:00 UTC.
 - يدوياً من تبويب **Actions** عبر **Run workflow**.
 
-أُنشئ فرع `gh-pages` يدوياً لنشر النسخة الأولية، وضُبط Pages لخدمته من الجذر. يعتمد التحديث الآلي على توفر GitHub Actions وتشغيل سير العمل بنجاح.
+حالياً لا يبدأ سير البناء المخصص لأن حساب GitHub مقفل بسبب مشكلة فوترة. إلى أن تُحل، استخدم [سكربت النشر المحلي](scripts/deploy-local.sh) لرفع الموقع إلى `gh-pages`. إعداد Pages الحالي يخدم هذا الفرع من المجلد `/`.
 
-**تنبيه:** التشغيل المجدول يعيد بناء الموقع ونشره، لكنه لا يسحب بيانات جديدة. المؤشرات في النسخة الحالية بلا قيم إلى حين إضافة بيانات موثقة إلى `data/indicators.json` أو إعداد تكامل بيانات مستقل.
+**تنبيه:** التشغيل المجدول يعيد بناء الموقع ونشره، لكنه لا يسحب بيانات جديدة. تُحدّث المؤشرات يدوياً في `data/indicators.json` بعد التحقق من مصادرها.
 
 ## 📁 هيكل المشروع
 
@@ -44,6 +44,8 @@
 morocco-watch/
 ├── README.md
 ├── requirements.txt
+├── scripts/
+│   └── deploy-local.sh
 ├── data/
 │   └── indicators.json
 ├── src/
@@ -64,15 +66,46 @@ morocco-watch/
 
 ## تشغيل محلي
 
-ثبّت الاعتماديات المحددة في `requirements.txt` ثم شغّل مولّد الموقع:
+على Linux أو macOS أو WSL/Git Bash، استخدم Python 3.11 أو 3.12، وأنشئ بيئة وثبّت الاعتماديات ثم شغّل مولّد الموقع. يظل إعداد GitHub Actions على Python 3.11:
 
 ```bash
+python3 -m venv .venv
+# Linux/macOS/WSL:
+source .venv/bin/activate
+# Windows Git Bash بدلاً من السطر السابق:
+# source .venv/Scripts/activate
 python -m pip install -r requirements.txt
 python src/generator.py
 python -m http.server 8000 --directory output
 ```
 
 ثم افتح `http://localhost:8000`.
+
+## النشر المحلي المؤقت
+
+يتطلب النشر صلاحية كتابة على المستودع. ثبّت [GitHub CLI](https://cli.github.com/) وسجّل الدخول مرة واحدة، ثم فعّل اعتماد Git:
+
+```bash
+gh auth login
+gh auth setup-git
+```
+
+اضبط هوية Git إذا لم تكن مضبوطة مسبقاً، ثم اسحب آخر نسخة من `main` وتأكد من عدم وجود تغييرات غير ملتزمة:
+
+```bash
+git config --global user.name "اسمك"
+git config --global user.email "بريدك أو عنوان GitHub noreply"
+git switch main
+git pull --ff-only origin main
+```
+
+بعد تفعيل بيئة Python أعلاه وتشغيل الأمر التالي، سيعيد السكربت بناء الصفحة، وينسخ الناتج إلى نسخة مؤقتة من `gh-pages`، ثم يدفع التغيير العادي إلى GitHub:
+
+```bash
+./scripts/deploy-local.sh
+```
+
+يشترط السكربت أن تكون على `main` وأن تطابق نسختك `origin/main`، ولا يستخدم `force-push`. إذا تغيّر `gh-pages` بالتزامن ورُفض الدفع، اسحب آخر `main` ثم أعد تشغيله. هذا النشر **يدوي عند كل تحديث** ولا يفعّل الجدولة اليومية؛ كما يجب أن يبقى GitHub Pages مضبوطاً على `gh-pages` و`/`.
 
 ## إضافة البيانات
 
