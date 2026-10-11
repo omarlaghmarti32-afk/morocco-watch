@@ -58,6 +58,14 @@ def render_card(item: dict) -> str:
 def render_chart_card(item: dict, canvas_id: str, title: str, unit: str) -> tuple[str, dict]:
     points = normalized_history(item)
     safe_title = esc(title)
+    source_url = item.get("source_url", "")
+    reference = esc(item.get("reference") or "المصدر الرسمي")
+    source_html = (
+        f'<a class="source-link chart-source" href="{esc(source_url)}" target="_blank" '
+        f'rel="noopener noreferrer">المصدر: {reference} ↗</a>'
+        if source_url.startswith("https://")
+        else '<span class="source-link muted chart-source">بانتظار توثيق المصدر</span>'
+    )
     empty_message = (
         "لا توجد نقاط زمنية موثقة بعد. أضف الفترة والقيمة والمصدر في ملف البيانات."
         if not points
@@ -69,6 +77,7 @@ def render_chart_card(item: dict, canvas_id: str, title: str, unit: str) -> tupl
         <p class="chart-empty" id="{canvas_id}-empty">{empty_message}</p>
         <canvas id="{canvas_id}" role="img" aria-label="{safe_title}" hidden></canvas>
       </div>
+      {source_html}
     </article>'''
     payload = {"title": title, "unit": unit, "points": points}
     return card, payload
@@ -81,8 +90,9 @@ def main() -> None:
     cards = "\n".join(render_card(item) for item in indicators)
 
     chart_specs = [
-        ("purchasing-power", "power-chart", "تطور القدرة الشرائية الحقيقية", "مؤشر"),
-        ("youth-unemployment", "unemployment-chart", "تطور بطالة الشباب", "%"),
+        ("purchasing-power", "power-chart", "تطور القدرة الشرائية للأسر", "نقطة تحسّن"),
+        ("unemployment-national", "unemployment-chart", "تطور معدل البطالة الوطني", "%"),
+        ("youth-unemployment", "youth-chart", "تطور بطالة الشباب (15–24 سنة)", "%"),
     ]
     chart_cards: list[str] = []
     chart_payload: dict[str, dict] = {}
@@ -112,7 +122,7 @@ def main() -> None:
 const q=document.getElementById('search');
 q.addEventListener('input',()=>{const s=q.value.trim().toLocaleLowerCase('ar');let n=0;document.querySelectorAll('.card').forEach(c=>{const ok=c.dataset.search.toLocaleLowerCase('ar').includes(s);c.style.display=ok?'flex':'none';if(ok)n++});document.getElementById('empty').style.display=n?'none':'block'});
 const trendData=__TREND_DATA__;
-const palette={"power-chart":{"line":"#a6e3bd","fill":"rgba(166,227,189,.12)"},"unemployment-chart":{"line":"#e8c98e","fill":"rgba(232,201,142,.12)"}};
+const palette={"power-chart":{"line":"#a6e3bd","fill":"rgba(166,227,189,.12)"},"unemployment-chart":{"line":"#e8c98e","fill":"rgba(232,201,142,.12)"},"youth-chart":{"line":"#df9c91","fill":"rgba(223,156,145,.12)"}};
 for(const [id,series] of Object.entries(trendData)){
   const canvas=document.getElementById(id),empty=document.getElementById(`${id}-empty`);
   if(!series.points.length)continue;
@@ -135,7 +145,7 @@ for(const [id,series] of Object.entries(trendData)){
 </head><body>
 <header><div class="wrap brand"><span class="flag">✦</span><div>مؤشر المواطن المغربي<small>قراءة مستقلة للواقع بالأرقام والمصادر</small></div></div></header>
 <main class="wrap"><section class="hero"><div class="eyebrow">المغرب · مؤشرات قابلة للتحقق</div><h1>كيف تتغير<br>معيشة المواطن؟</h1><p class="lead">لوحة أولية لمتابعة القدرة الشرائية والعمل والسكن والتنافسية، مع إظهار مصدر كل رقم وفترته بدل الاكتفاء بالعناوين.</p></section>
-<div class="notice"><span>ⓘ</span><div><b>نسخة أولية — لا تعرض بيانات رسمية بعد.</b> لم تُملأ القيم حتى الآن لتجنب نشر أرقام غير متحققة. ستظهر المؤشرات بعد إدخال سلسلة موثقة ومراجعة تعريفها وفترتها.</div></div>
+<div class="notice"><span>ⓘ</span><div><b>أُضيفت قيم موثقة للبطالة والقدرة الشرائية من HCP.</b> تعرض كل قيمة الفترة والمصدر. تبقى المؤشرات التي لا تتوفر لها بيانات موثقة فارغة.</div></div>
 <section><div class="toolbar"><h2>المؤشرات الرئيسية</h2><input id="search" class="search" type="search" placeholder="ابحث عن مؤشر…" aria-label="ابحث عن مؤشر"></div><div class="grid">__CARDS__</div><p id="empty" class="empty">لا توجد مؤشرات مطابقة لبحثك.</p></section>
 <section class="trends"><div class="section-intro"><h2>تطور المؤشرات</h2><p>رسوم تفاعلية؛ حرّك المؤشر فوق النقاط لعرض القيمة والفترة. لا تظهر خطوط قبل إدخال بيانات موثقة.</p></div><div class="chart-grid">__CHART_CARDS__</div></section>
 <section class="method"><article><h2>منهجية العرض</h2><p>لكل مؤشر قيمة وفترة مرجعية ووحدة قياس ورابط مصدر مباشر. لا تُعرض القيمة بوصفها موثقة ما لم يتوفر مرجع يمكن للقارئ فتحه. المقارنات الدولية تحتاج إلى توحيد التعريفات والفترات قبل نشرها.</p><ul><li>القيمة الفارغة تعني أن البيانات لم تُراجع وتُعتمد بعد.</li><li>تاريخ التحديث الحالي للبيانات: __UPDATED__.</li><li>المشروع مستقل ولا يمثل الجهات المذكورة.</li></ul></article>

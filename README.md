@@ -25,6 +25,8 @@
 
 هذه بوابات مرجعية للبحث عن السلاسل الأصلية، وليست إسناداً لقيم منشورة في هذه النسخة.
 
+تتضمن النسخة الحالية قيماً منشورة عن البطالة والقدرة الشرائية: المعدل الوطني للبطالة 13.3% في 2024 و13.0% في 2025، وبطالة الشباب (15–24 سنة) 36.7% ثم 37.2% وفق [HCP](https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html). وتحسن القدرة الشرائية للأسر 1.8 نقطة في 2023 و5.1 نقاط في 2024 وفق [حسابات HCP](https://www.hcp.ma/Les-comptes-nationaux-des-secteurs-institutionnels-2024-Base-2014-Decembre-2025-Rapport-complet_a4225.html)، وتؤكدها [البوابة الحكومية المغربية](https://maroc.ma/fr/actualites/maroc-amelioration-du-pouvoir-dachat-des-menages-de-51-points-en-2024). نقاط القدرة الشرائية بوحدة «نقطة تحسّن» وليست نسباً مئوية.
+
 ## 🚀 النشر والتحديث
 
 سير GitHub Actions مُهيأ لإعادة بناء الموقع ونشره:
@@ -76,7 +78,7 @@ python -m http.server 8000 --directory output
 
 حرر `data/indicators.json`. لكل مؤشر يمكن ضبط `value`, `unit`, `period`, `reference` و`source_url`. لا تضف قيمة إلا بعد التحقق من تعريف المؤشر والفترة والمصدر الأصلي؛ احرص على أن يحدد `reference` التقرير أو الجدول ورقم الصفحة أو الرابط الدقيق. راجع البيانات تحريرياً قبل نشرها.
 
-تقرأ الرسوم التفاعلية التاريخية للمؤشرين `purchasing-power` و`youth-unemployment` من الخاصية `history`، مرتبة زمنياً من الأقدم إلى الأحدث. أضف لكل نقطة `period` و`value` بعد توثيق مصدرها، مثلاً: `{ "period": "2024", "value": 12.3 }`. تظل الرسوم فارغة حتى إدخال نقاط موثقة؛ لا توجد بيانات تجريبية في النسخة الحالية. تعتمد الرسوم على Chart.js المحمّلة من jsDelivr.
+تقرأ الرسوم التفاعلية التاريخية للمؤشرات `purchasing-power`, `unemployment-national` و`youth-unemployment` من الخاصية `history`، مرتبة زمنياً من الأقدم إلى الأحدث. أضف لكل نقطة `period` و`value` بعد توثيق مصدرها، مثلاً: `{ "period": "2024", "value": 12.3 }`. تعتمد الرسوم على Chart.js المحمّلة من jsDelivr.
 
 ## 📜 الترخيص
 
