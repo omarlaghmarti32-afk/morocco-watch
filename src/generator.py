@@ -163,6 +163,14 @@ for(const [id,series] of Object.entries(trendData)){
     OUTPUT_FILE.write_text(page, encoding="utf-8")
     print(f"Generated {OUTPUT_FILE.relative_to(ROOT)} ({OUTPUT_FILE.stat().st_size} bytes)")
 
+    api_file = OUTPUT_FILE.parent / "api" / "v1" / "indicators.json"
+    api_file.parent.mkdir(parents=True, exist_ok=True)
+    api_file.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
+    print(f"Generated {api_file.relative_to(ROOT)} ({api_file.stat().st_size} bytes)")
+
 
 if __name__ == "__main__":
     main()

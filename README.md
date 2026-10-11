@@ -51,7 +51,8 @@ morocco-watch/
 ├── src/
 │   └── generator.py
 ├── output/
-│   └── index.html (يُولَّد تلقائياً)
+│   ├── index.html (يُولَّد تلقائياً)
+│   └── api/v1/indicators.json (يُولَّد تلقائياً)
 └── .github/
     └── workflows/
         └── deploy.yml
@@ -112,6 +113,36 @@ git pull --ff-only origin main
 حرر `data/indicators.json`. لكل مؤشر يمكن ضبط `value`, `unit`, `period`, `reference` و`source_url`. لا تضف قيمة إلا بعد التحقق من تعريف المؤشر والفترة والمصدر الأصلي؛ احرص على أن يحدد `reference` التقرير أو الجدول ورقم الصفحة أو الرابط الدقيق. راجع البيانات تحريرياً قبل نشرها.
 
 تقرأ الرسوم التفاعلية التاريخية للمؤشرات `purchasing-power`, `unemployment-national` و`youth-unemployment` من الخاصية `history`، مرتبة زمنياً من الأقدم إلى الأحدث. أضف لكل نقطة `period` و`value` بعد توثيق مصدرها، مثلاً: `{ "period": "2024", "value": 12.3 }`. تعتمد الرسوم على Chart.js المحمّلة من jsDelivr.
+
+## API للقراءة فقط
+
+ينسخ مولّد الموقع البيانات إلى نقطة JSON ثابتة بإصدار `v1`:
+
+```text
+https://omarlaghmarti32-afk.github.io/morocco-watch/api/v1/indicators.json
+```
+
+تدعم النقطة طلب `GET` وتعيد كائن `updated_at` ومصفوفة `indicators` بالتنسيق نفسه الموجود في `data/indicators.json`. مثال من سطر الأوامر:
+
+```bash
+curl -sS https://omarlaghmarti32-afk.github.io/morocco-watch/api/v1/indicators.json
+```
+
+ومثال من تطبيق JavaScript في المتصفح:
+
+```javascript
+const response = await fetch(
+  "https://omarlaghmarti32-afk.github.io/morocco-watch/api/v1/indicators.json"
+);
+if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+const payload = await response.json();
+const unemployment = payload.indicators.find(
+  (item) => item.id === "unemployment-national"
+);
+console.log(payload.updated_at, unemployment?.value, unemployment?.unit);
+```
+
+هذه واجهة **قراءة عامة فقط** وليست خادماً ديناميكياً: لا تدعم `POST` أو كتابة البيانات أو المصادقة أو المرشحات على الخادم. الموقع العام يرسل حالياً `Access-Control-Allow-Origin: *`، ما يسمح لتطبيقات المتصفح بقراءة البيانات من نطاقات مختلفة؛ ولا يتيح GitHub Pages ضبط رأس CORS مخصص لكل نطاق [مناقشة GitHub Pages حول CORS](https://github.com/orgs/community/discussions/157852). لذلك لا تضع مفاتيح أو بيانات خاصة في `indicators.json`. يتحدث المسار عند بناء الموقع ونشره، سواء عبر GitHub Actions أو سكربت النشر المحلي.
 
 ## 📜 الترخيص
 
