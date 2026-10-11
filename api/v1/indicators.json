@@ -1,0 +1,113 @@
+{
+  "updated_at": "2026-10-11",
+  "indicators": [
+    {
+      "id": "purchasing-power",
+      "title": "القدرة الشرائية للأسر",
+      "description": "التغير السنوي المنشور في القدرة الشرائية للأسر ضمن الحسابات الوطنية القطاعية لـHCP.",
+      "icon": "↗",
+      "value": 5.1,
+      "unit": "نقطة تحسّن",
+      "period": "2024",
+      "reference": "HCP، الحسابات الوطنية للقطاعات المؤسساتية 2024؛ تحسن 5.1 نقاط في 2024 مقابل 1.8 في 2023.",
+      "source_url": "https://www.hcp.ma/Les-comptes-nationaux-des-secteurs-institutionnels-2024-Base-2014-Decembre-2025-Rapport-complet_a4225.html",
+      "history": [
+        {
+          "period": "2023",
+          "value": 1.8,
+          "reference": "مقارنة HCP المنشورة في تقرير حسابات 2024، وأكدتها البوابة الحكومية المغربية.",
+          "source_url": "https://maroc.ma/fr/actualites/maroc-amelioration-du-pouvoir-dachat-des-menages-de-51-points-en-2024"
+        },
+        {
+          "period": "2024",
+          "value": 5.1,
+          "reference": "تحسن القدرة الشرائية للأسر وفق HCP.",
+          "source_url": "https://maroc.ma/fr/actualites/maroc-amelioration-du-pouvoir-dachat-des-menages-de-51-points-en-2024"
+        }
+      ]
+    },
+    {
+      "id": "youth-unemployment",
+      "title": "بطالة الشباب (15–24 سنة)",
+      "description": "معدل البطالة بين الشباب بعمر 15 إلى 24 سنة وفق نتائج HCP السنوية.",
+      "icon": "◷",
+      "value": 37.2,
+      "unit": "%",
+      "period": "2025",
+      "reference": "HCP، وضع سوق العمل في 2025؛ المعدل بين الشباب بعمر 15–24 سنة.",
+      "source_url": "https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html",
+      "history": [
+        {
+          "period": "2024",
+          "value": 36.7,
+          "reference": "HCP، وضع سوق العمل في 2025؛ المقارنة السنوية.",
+          "source_url": "https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html"
+        },
+        {
+          "period": "2025",
+          "value": 37.2,
+          "reference": "HCP، وضع سوق العمل في 2025.",
+          "source_url": "https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html"
+        }
+      ]
+    },
+    {
+      "id": "unemployment-national",
+      "title": "معدل البطالة الوطني",
+      "description": "نسبة العاطلين إلى السكان النشيطين بعمر 15 سنة فأكثر، وفق تعريف HCP.",
+      "icon": "◉",
+      "value": 13.0,
+      "unit": "%",
+      "period": "2025",
+      "reference": "HCP، وضع سوق العمل في 2025؛ المعدل الوطني انخفض من 13.3% إلى 13.0%.",
+      "source_url": "https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html",
+      "history": [
+        {
+          "period": "2024",
+          "value": 13.3,
+          "reference": "HCP، وضع سوق العمل في 2025؛ المقارنة السنوية.",
+          "source_url": "https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html"
+        },
+        {
+          "period": "2025",
+          "value": 13.0,
+          "reference": "HCP، وضع سوق العمل في 2025.",
+          "source_url": "https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html"
+        }
+      ]
+    },
+    {
+      "id": "housing-burden",
+      "title": "عبء السكن",
+      "description": "حصة كلفة السكن من دخل الأسرة وفق سلسلة قابلة للمقارنة.",
+      "icon": "⌂",
+      "value": null,
+      "unit": "% من الدخل",
+      "period": null,
+      "reference": null,
+      "source_url": "https://www.hcp.ma/"
+    },
+    {
+      "id": "graduate-unemployment",
+      "title": "بطالة حاملي الشهادات",
+      "description": "معدل البطالة حسب المستوى التعليمي ومصدر البيانات.",
+      "icon": "◇",
+      "value": null,
+      "unit": "%",
+      "period": null,
+      "reference": null,
+      "source_url": "https://www.hcp.ma/"
+    },
+    {
+      "id": "competitiveness-gap",
+      "title": "الفجوة التنافسية",
+      "description": "مقارنة مختارة مع أوروبا بعد توحيد التعاريف والوحدات.",
+      "icon": "◎",
+      "value": null,
+      "unit": "يُحدد لاحقاً",
+      "period": null,
+      "reference": null,
+      "source_url": "https://data.worldbank.org/country/morocco"
+    }
+  ]
+}
