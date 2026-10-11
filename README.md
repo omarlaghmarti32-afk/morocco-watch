@@ -60,9 +60,10 @@ morocco-watch/
 
 ## تشغيل محلي
 
-لا يحتاج مولّد الموقع إلى مكتبات خارجية:
+ثبّت الاعتماديات المحددة في `requirements.txt` ثم شغّل مولّد الموقع:
 
 ```bash
+python -m pip install -r requirements.txt
 python src/generator.py
 python -m http.server 8000 --directory output
 ```
