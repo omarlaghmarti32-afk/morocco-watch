@@ -1,0 +1,60 @@
+{
+  "updated_at": "لم تُحدّث البيانات بعد",
+  "indicators": [
+    {
+      "id": "purchasing-power",
+      "title": "القدرة الشرائية",
+      "description": "تغير الأجور الحقيقية مقارنة بمؤشر أسعار الاستهلاك.",
+      "icon": "↗",
+      "value": null,
+      "unit": "مؤشر",
+      "period": null,
+      "reference": null,
+      "source_url": "https://www.hcp.ma/"
+    },
+    {
+      "id": "youth-unemployment",
+      "title": "بطالة الشباب",
+      "description": "معدل البطالة للفئة العمرية الشابة وفق تعريف المصدر.",
+      "icon": "◷",
+      "value": null,
+      "unit": "%",
+      "period": null,
+      "reference": null,
+      "source_url": "https://www.hcp.ma/"
+    },
+    {
+      "id": "housing-burden",
+      "title": "عبء السكن",
+      "description": "حصة كلفة السكن من دخل الأسرة وفق سلسلة قابلة للمقارنة.",
+      "icon": "⌂",
+      "value": null,
+      "unit": "% من الدخل",
+      "period": null,
+      "reference": null,
+      "source_url": "https://www.hcp.ma/"
+    },
+    {
+      "id": "graduate-unemployment",
+      "title": "بطالة حاملي الشهادات",
+      "description": "معدل البطالة حسب المستوى التعليمي ومصدر البيانات.",
+      "icon": "◇",
+      "value": null,
+      "unit": "%",
+      "period": null,
+      "reference": null,
+      "source_url": "https://www.hcp.ma/"
+    },
+    {
+      "id": "competitiveness-gap",
+      "title": "الفجوة التنافسية",
+      "description": "مقارنة مختارة مع أوروبا بعد توحيد التعاريف والوحدات.",
+      "icon": "◎",
+      "value": null,
+      "unit": "يُحدد لاحقاً",
+      "period": null,
+      "reference": null,
+      "source_url": "https://data.worldbank.org/country/morocco"
+    }
+  ]
+}
