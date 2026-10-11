@@ -10,7 +10,8 @@
       "unit": "مؤشر",
       "period": null,
       "reference": null,
-      "source_url": "https://www.hcp.ma/"
+      "source_url": "https://www.hcp.ma/",
+      "history": []
     },
     {
       "id": "youth-unemployment",
@@ -21,7 +22,8 @@
       "unit": "%",
       "period": null,
       "reference": null,
-      "source_url": "https://www.hcp.ma/"
+      "source_url": "https://www.hcp.ma/",
+      "history": []
     },
     {
       "id": "housing-burden",
