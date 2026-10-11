@@ -76,3 +76,7 @@ python -m http.server 8000 --directory output
 ## 📜 الترخيص
 
 MIT — راجع [LICENSE](LICENSE).
+
+---
+
+**«هذا ليس رأياً — هذه أرقام رسمية.»**
