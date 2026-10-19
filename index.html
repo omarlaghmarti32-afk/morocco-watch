@@ -4,6 +4,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0c1714">
 <meta name="description" content="لوحة مستقلة لمتابعة مؤشرات المعيشة والعمل والسكن في المغرب مع توثيق المصادر والمنهجية.">
+<link rel="alternate" type="application/rss+xml" title="RSS — تحديثات المؤشرات" href="feed.xml">
+<link rel="alternate" type="application/atom+xml" title="Atom — تحديثات المؤشرات" href="atom.xml">
 <title>مؤشر المواطن المغربي</title>
 <style>
 :root{--bg:#0c1714;--panel:#13221d;--text:#f3f5ed;--muted:#a8b7ac;--line:#294137;--mint:#a6e3bd;--sand:#e8c98e}
@@ -90,7 +92,7 @@
     </article></div></section>
 <section class="method"><article><h2>منهجية العرض</h2><p>لكل مؤشر قيمة وفترة مرجعية ووحدة قياس ورابط مصدر مباشر. لا تُعرض القيمة بوصفها موثقة ما لم يتوفر مرجع يمكن للقارئ فتحه. المقارنات الدولية تحتاج إلى توحيد التعريفات والفترات قبل نشرها.</p><ul><li>القيمة الفارغة تعني أن البيانات لم تُراجع وتُعتمد بعد.</li><li>تاريخ التحديث الحالي للبيانات: 2026-10-11.</li><li>المشروع مستقل ولا يمثل الجهات المذكورة.</li></ul></article>
 <article><h2>مصادر للرجوع والتحقق</h2><p>تُستخدم هذه البوابات للبحث عن السلاسل الأصلية، ولا يعني إدراجها أن الأرقام قد جُمعت أو تحققت بعد.</p><div class="sources"><a href="https://www.hcp.ma/" target="_blank" rel="noopener">المندوبية السامية للتخطيط</a><a href="https://www.bkam.ma/" target="_blank" rel="noopener">بنك المغرب</a><a href="https://data.worldbank.org/country/morocco" target="_blank" rel="noopener">البنك الدولي</a><a href="https://www.imf.org/en/Countries/MAR" target="_blank" rel="noopener">صندوق النقد الدولي</a></div></article></section></main>
-<footer class="wrap"><span>مؤشر المواطن المغربي · مشروع مفتوح المصدر</span><span>بُنيت الصفحة من بيانات المشروع المحلية · لا تتبع المستخدم</span></footer>
+<footer class="wrap"><span>مؤشر المواطن المغربي · مشروع مفتوح المصدر</span><span class="sources"><a href="changelog/">سجل التغييرات</a><a href="feed.xml">RSS</a><a href="atom.xml">Atom</a></span></footer>
 <script>
 const q=document.getElementById('search');
 q.addEventListener('input',()=>{const s=q.value.trim().toLocaleLowerCase('ar');let n=0;document.querySelectorAll('.card').forEach(c=>{const ok=c.dataset.search.toLocaleLowerCase('ar').includes(s);c.style.display=ok?'flex':'none';if(ok)n++});document.getElementById('empty').style.display=n?'none':'block'});

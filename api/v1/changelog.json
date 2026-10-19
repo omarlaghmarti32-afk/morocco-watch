@@ -1,0 +1,53 @@
+{
+  "entries": [
+    {
+      "id": "83a47e213aae529c1bbb343671bec7c230d949e4",
+      "published_at": "2026-10-11T02:12:12+00:00",
+      "title": "تحديث بيانات المؤشرات: القدرة الشرائية للأسر، معدل البطالة الوطني، بطالة الشباب (15–24 سنة)",
+      "summary": "القدرة الشرائية للأسر: 5.1 نقطة تحسّن (2024)؛ معدل البطالة الوطني: 13.0 % (2025)؛ بطالة الشباب (15–24 سنة): 37.2 % (2025)",
+      "commit_message": "Add official unemployment and purchasing power data",
+      "url": "https://github.com/omarlaghmarti32-afk/morocco-watch/commit/83a47e213aae529c1bbb343671bec7c230d949e4",
+      "changes": [
+        {
+          "id": "purchasing-power",
+          "title": "القدرة الشرائية للأسر",
+          "summary": "القدرة الشرائية للأسر: 5.1 نقطة تحسّن (2024)",
+          "previous": null,
+          "current": {
+            "value": 5.1,
+            "unit": "نقطة تحسّن",
+            "period": "2024"
+          },
+          "source_url": "https://www.hcp.ma/Les-comptes-nationaux-des-secteurs-institutionnels-2024-Base-2014-Decembre-2025-Rapport-complet_a4225.html",
+          "reference": "HCP، الحسابات الوطنية للقطاعات المؤسساتية 2024؛ تحسن 5.1 نقاط في 2024 مقابل 1.8 في 2023."
+        },
+        {
+          "id": "unemployment-national",
+          "title": "معدل البطالة الوطني",
+          "summary": "معدل البطالة الوطني: 13.0 % (2025)",
+          "previous": null,
+          "current": {
+            "value": 13.0,
+            "unit": "%",
+            "period": "2025"
+          },
+          "source_url": "https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html",
+          "reference": "HCP، وضع سوق العمل في 2025؛ المعدل الوطني انخفض من 13.3% إلى 13.0%."
+        },
+        {
+          "id": "youth-unemployment",
+          "title": "بطالة الشباب (15–24 سنة)",
+          "summary": "بطالة الشباب (15–24 سنة): 37.2 % (2025)",
+          "previous": null,
+          "current": {
+            "value": 37.2,
+            "unit": "%",
+            "period": "2025"
+          },
+          "source_url": "https://www.hcp.ma/Situation-du-marche-du-travail-en-2025_a4248.html",
+          "reference": "HCP، وضع سوق العمل في 2025؛ المعدل بين الشباب بعمر 15–24 سنة."
+        }
+      ]
+    }
+  ]
+}
