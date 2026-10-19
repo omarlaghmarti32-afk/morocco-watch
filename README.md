@@ -52,7 +52,9 @@ morocco-watch/
 │   └── generator.py
 ├── output/
 │   ├── index.html (يُولَّد تلقائياً)
-│   └── api/v1/indicators.json (يُولَّد تلقائياً)
+│   ├── feed.xml وatom.xml (خلاصات التحديث)
+│   ├── changelog/index.html (سجل التغييرات)
+│   └── api/v1/ (واجهات JSON)
 └── .github/
     └── workflows/
         └── deploy.yml
@@ -113,6 +115,19 @@ git pull --ff-only origin main
 حرر `data/indicators.json`. لكل مؤشر يمكن ضبط `value`, `unit`, `period`, `reference` و`source_url`. لا تضف قيمة إلا بعد التحقق من تعريف المؤشر والفترة والمصدر الأصلي؛ احرص على أن يحدد `reference` التقرير أو الجدول ورقم الصفحة أو الرابط الدقيق. راجع البيانات تحريرياً قبل نشرها.
 
 تقرأ الرسوم التفاعلية التاريخية للمؤشرات `purchasing-power`, `unemployment-national` و`youth-unemployment` من الخاصية `history`، مرتبة زمنياً من الأقدم إلى الأحدث. أضف لكل نقطة `period` و`value` بعد توثيق مصدرها، مثلاً: `{ "period": "2024", "value": 12.3 }`. تعتمد الرسوم على Chart.js المحمّلة من jsDelivr.
+
+## إشعارات RSS/Atom وسجل التغييرات
+
+بعد النشر، يمكن للمستخدمين الاشتراك في الخلاصات عبر قارئ RSS/Atom:
+
+- RSS: <https://omarlaghmarti32-afk.github.io/morocco-watch/feed.xml>
+- Atom: <https://omarlaghmarti32-afk.github.io/morocco-watch/atom.xml>
+- سجل التغييرات: <https://omarlaghmarti32-afk.github.io/morocco-watch/changelog/>
+- سجل JSON: <https://omarlaghmarti32-afk.github.io/morocco-watch/api/v1/changelog.json>
+
+يبني المولّد السجل بمقارنة التزامات Git التي غيّرت `data/indicators.json`، ثم ينشر التحديثات ذات القيم الموثقة فقط. لذلك احفظ كل تحديث للبيانات في التزام Git. يحمّل Workflow كامل سجل Git، ويتحقق سكربت النشر المحلي من اكتمال السجل إذا كانت النسخة shallow. قارئات RSS/Atom تتحقق من الخلاصة وفق جدولها؛ هذا اشتراك بالخلاصة وليس رسالة فورية أو بريداً إلكترونياً.
+
+حالياً، بسبب مشكلة الفوترة التي تمنع سير Actions المخصص من العمل، شغّل `./scripts/deploy-local.sh` بعد اعتماد تحديث البيانات كي تُنشر الخلاصات وسجل التغييرات. بعد حل المشكلة، يعيد Workflow بناءها عند كل `push` إلى `main`.
 
 ## API للقراءة فقط
 

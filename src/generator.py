@@ -5,11 +5,18 @@ from __future__ import annotations
 import html
 import json
 import math
+import subprocess
+from datetime import datetime, timezone
+from email.utils import format_datetime
+from hashlib import sha256
 from pathlib import Path
+from xml.sax.saxutils import escape as xml_escape, quoteattr
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_FILE = ROOT / "data" / "indicators.json"
 OUTPUT_FILE = ROOT / "output" / "index.html"
+SITE_URL = "https://omarlaghmarti32-afk.github.io/morocco-watch/"
+REPOSITORY_URL = "https://github.com/omarlaghmarti32-afk/morocco-watch"
 
 
 def esc(value: object) -> str:
@@ -83,6 +90,281 @@ def render_chart_card(item: dict, canvas_id: str, title: str, unit: str) -> tupl
     return card, payload
 
 
+def git_stdout(*args: str) -> str:
+    """Run a read-only Git command and return stdout, or an empty string."""
+    try:
+        result = subprocess.run(
+            ["git", *args], cwd=ROOT, text=True, capture_output=True, check=False
+        )
+    except OSError:
+        return ""
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+def parse_datetime(value: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        parsed = datetime.now(timezone.utc)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def data_at_ref(ref: str) -> dict | None:
+    raw = git_stdout("show", f"{ref}:data/indicators.json")
+    if not raw:
+        return None
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def has_observations(item: dict | None) -> bool:
+    if not item:
+        return False
+    if item.get("value") is not None:
+        return True
+    return any(
+        isinstance(point, dict) and point.get("value") is not None
+        for point in item.get("history", [])
+    )
+
+
+def latest_metric(item: dict | None) -> dict | None:
+    if not item:
+        return None
+    value = item.get("value")
+    period = item.get("period")
+    if value is None and item.get("history"):
+        point = item["history"][-1]
+        if isinstance(point, dict):
+            value = point.get("value")
+            period = point.get("period")
+    if value is None:
+        return None
+    return {"value": value, "unit": item.get("unit", ""), "period": period}
+
+
+def metric_text(metric: dict | None) -> str:
+    if not metric:
+        return "لا توجد قيمة حالية موثقة"
+    period = f" ({metric['period']})" if metric.get("period") else ""
+    unit = f" {metric['unit']}" if metric.get("unit") else ""
+    return f"{metric['value']}{unit}{period}"
+
+
+def changed_indicators(previous: dict, current: dict) -> list[dict]:
+    old_rows = {
+        str(item.get("id")): item
+        for item in previous.get("indicators", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    new_rows = {
+        str(item.get("id")): item
+        for item in current.get("indicators", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    changes: list[dict] = []
+    for indicator_id in sorted(set(old_rows) | set(new_rows)):
+        old = old_rows.get(indicator_id)
+        new = new_rows.get(indicator_id)
+        if old == new or not (has_observations(old) or has_observations(new)):
+            continue
+        display = new or old or {}
+        before = latest_metric(old)
+        after = latest_metric(new)
+        title = str(display.get("title", indicator_id))
+        if before and after and before.get("value") != after.get("value"):
+            summary = f"{title}: من {metric_text(before)} إلى {metric_text(after)}"
+        else:
+            summary = f"{title}: {metric_text(after or before)}"
+        changes.append({
+            "id": indicator_id,
+            "title": title,
+            "summary": summary,
+            "previous": before,
+            "current": after,
+            "source_url": display.get("source_url"),
+            "reference": display.get("reference"),
+        })
+    return changes
+
+
+def change_entries(data: dict, limit: int = 25) -> list[dict]:
+    """Build a stable, newest-first changelog from commits touching the data file."""
+    log = git_stdout(
+        "log", "-n", "200", "--format=%H%x1f%cI%x1f%s", "--",
+        str(DATA_FILE.relative_to(ROOT)),
+    )
+    entries: list[dict] = []
+    for line in log.splitlines():
+        parts = line.split("\x1f", 2)
+        if len(parts) != 3:
+            continue
+        commit, committed_at, subject = parts
+        current = data_at_ref(commit)
+        previous = data_at_ref(f"{commit}^")
+        if current is None:
+            continue
+        changes = changed_indicators(previous or {}, current)
+        if not changes:
+            continue
+        names = [change["title"] for change in changes]
+        title = "تحديث بيانات المؤشرات: " + "، ".join(names[:4])
+        if len(names) > 4:
+            title += f"، ومؤشرات أخرى ({len(names) - 4})"
+        entries.append({
+            "id": commit,
+            "published_at": parse_datetime(committed_at).isoformat(),
+            "title": title,
+            "summary": "؛ ".join(change["summary"] for change in changes),
+            "commit_message": subject,
+            "url": f"{REPOSITORY_URL}/commit/{commit}",
+            "changes": changes,
+        })
+        if len(entries) >= limit:
+            break
+
+    if entries:
+        return entries
+
+    # Fallback for source archives or shallow clones without usable Git history.
+    changes = []
+    for item in data.get("indicators", []):
+        if not isinstance(item, dict) or not has_observations(item):
+            continue
+        changes.append({
+            "id": item.get("id"),
+            "title": item.get("title", item.get("id", "مؤشر")),
+            "summary": f"{item.get('title', 'مؤشر')}: {metric_text(latest_metric(item))}",
+            "previous": None,
+            "current": latest_metric(item),
+            "source_url": item.get("source_url"),
+            "reference": item.get("reference"),
+        })
+    snapshot = json.dumps(data, ensure_ascii=False, sort_keys=True, allow_nan=False)
+    snapshot_id = sha256(snapshot.encode("utf-8")).hexdigest()[:16]
+    updated_at = str(data.get("updated_at", ""))
+    published_at = parse_datetime(updated_at or datetime.now(timezone.utc).isoformat())
+    return [{
+        "id": f"snapshot-{snapshot_id}",
+        "published_at": published_at.isoformat(),
+        "title": "لقطة البيانات الحالية",
+        "summary": "؛ ".join(change["summary"] for change in changes)
+        or "لا توجد قيم مؤشرات موثقة حالياً.",
+        "commit_message": "",
+        "url": f"{SITE_URL}api/v1/indicators.json",
+        "changes": changes,
+    }]
+
+
+def render_rss(entries: list[dict]) -> str:
+    items = []
+    for entry in entries:
+        pub_date = format_datetime(parse_datetime(entry["published_at"]))
+        items.append(
+            "<item>"
+            f"<title>{xml_escape(entry['title'])}</title>"
+            f"<link>{xml_escape(entry['url'])}</link>"
+            f"<guid isPermaLink=\"false\">morocco-watch:{xml_escape(entry['id'])}</guid>"
+            f"<pubDate>{xml_escape(pub_date)}</pubDate>"
+            f"<description>{xml_escape(entry['summary'])}</description>"
+            "</item>"
+        )
+    last_build = format_datetime(parse_datetime(entries[0]["published_at"]))
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">'
+        "<channel>"
+        "<title>تحديثات مؤشرات المواطن المغربي</title>"
+        f"<link>{xml_escape(SITE_URL)}</link>"
+        "<description>سجل تحديثات البيانات الرسمية لمؤشرات المغرب.</description>"
+        "<language>ar</language>"
+        f"<atom:link href={quoteattr(SITE_URL + 'feed.xml')} rel=\"self\" type=\"application/rss+xml\"/>"
+        f"<lastBuildDate>{xml_escape(last_build)}</lastBuildDate>"
+        + "".join(items)
+        + "</channel></rss>\n"
+    )
+
+
+def render_atom(entries: list[dict]) -> str:
+    feed_id = SITE_URL + "atom.xml"
+    items = []
+    for entry in entries:
+        published = parse_datetime(entry["published_at"]).isoformat().replace("+00:00", "Z")
+        entry_id = f"urn:morocco-watch:update:{entry['id']}"
+        items.append(
+            "<entry>"
+            f"<id>{xml_escape(entry_id)}</id>"
+            f"<title>{xml_escape(entry['title'])}</title>"
+            f"<updated>{xml_escape(published)}</updated>"
+            f"<link href={quoteattr(entry['url'])} rel=\"alternate\"/>"
+            f"<summary>{xml_escape(entry['summary'])}</summary>"
+            "</entry>"
+        )
+    latest = parse_datetime(entries[0]["published_at"]).isoformat().replace("+00:00", "Z")
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ar">'
+        f"<id>{xml_escape(feed_id)}</id>"
+        "<title>تحديثات مؤشرات المواطن المغربي</title>"
+        f"<updated>{xml_escape(latest)}</updated>"
+        f"<link href={quoteattr(feed_id)} rel=\"self\" type=\"application/atom+xml\"/>"
+        f"<link href={quoteattr(SITE_URL)} rel=\"alternate\" type=\"text/html\"/>"
+        "<subtitle>سجل تحديثات البيانات الرسمية لمؤشرات المغرب.</subtitle>"
+        + "".join(items)
+        + "</feed>\n"
+    )
+
+
+def render_changelog_page(entries: list[dict]) -> str:
+    cards = []
+    for entry in entries:
+        changed_rows = []
+        for change in entry.get("changes", []):
+            current_text = metric_text(change.get("current"))
+            previous = change.get("previous")
+            detail = (
+                f"من {metric_text(previous)} إلى {current_text}"
+                if previous and previous.get("value") != (change.get("current") or {}).get("value")
+                else current_text
+            )
+            source = change.get("source_url") or ""
+            source_html = (
+                f'<a href="{esc(source)}" rel="noopener noreferrer">المصدر</a>'
+                if source.startswith("https://") else ""
+            )
+            changed_rows.append(
+                f"<li><strong>{esc(change.get('title', 'مؤشر'))}</strong>: "
+                f"{esc(detail)} {source_html}</li>"
+            )
+        commit = entry.get("url", "")
+        commit_html = (
+            f'<a href="{esc(commit)}" rel="noopener noreferrer">تفاصيل الالتزام</a>'
+            if commit.startswith("https://github.com/") else ""
+        )
+        cards.append(
+            '<article class="entry">'
+            f"<time datetime=\"{esc(entry['published_at'])}\">{esc(entry['published_at'][:10])}</time>"
+            f"<h2>{esc(entry['title'])}</h2><p>{esc(entry['summary'])}</p>"
+            f"<ul>{''.join(changed_rows)}</ul>"
+            f"<small>{esc(entry.get('commit_message', ''))} {commit_html}</small>"
+            "</article>"
+        )
+    return f'''<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سجل تغييرات المؤشرات | مؤشر المواطن المغربي</title>
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="Atom" href="../atom.xml">
+<style>body{{margin:0;background:#0c1714;color:#f3f5ed;font:16px/1.8 system-ui,sans-serif}}main{{width:min(900px,calc(100% - 32px));margin:40px auto}}a{{color:#a6e3bd}}.top{{display:flex;gap:16px;flex-wrap:wrap}}.entry{{border:1px solid #294137;background:#13221d;border-radius:14px;padding:20px;margin:16px 0}}time,small{{color:#a8b7ac}}h1{{margin-bottom:4px}}h2{{margin:6px 0}}ul{{padding-right:22px}}</style></head>
+<body><main><p><a href="../">العودة إلى المؤشرات</a></p><h1>سجل تغييرات المؤشرات</h1>
+<p>يُنشأ السجل من التزامات Git التي غيّرت بيانات المؤشرات. اشترك عبر <span class="top"><a href="../feed.xml">RSS</a><a href="../atom.xml">Atom</a><a href="../api/v1/changelog.json">JSON</a></span>.</p>
+{''.join(cards) if cards else '<p>لا توجد تغييرات موثقة بعد.</p>'}</main></body></html>'''
+
+
 def main() -> None:
     data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
     indicators = data.get("indicators", [])
@@ -139,6 +421,8 @@ for(const [id,series] of Object.entries(trendData)){
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0c1714">
 <meta name="description" content="لوحة مستقلة لمتابعة مؤشرات المعيشة والعمل والسكن في المغرب مع توثيق المصادر والمنهجية.">
+<link rel="alternate" type="application/rss+xml" title="RSS — تحديثات المؤشرات" href="feed.xml">
+<link rel="alternate" type="application/atom+xml" title="Atom — تحديثات المؤشرات" href="atom.xml">
 <title>مؤشر المواطن المغربي</title>
 <style>__CSS__</style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -150,7 +434,7 @@ for(const [id,series] of Object.entries(trendData)){
 <section class="trends"><div class="section-intro"><h2>تطور المؤشرات</h2><p>رسوم تفاعلية؛ حرّك المؤشر فوق النقاط لعرض القيمة والفترة. لا تظهر خطوط قبل إدخال بيانات موثقة.</p></div><div class="chart-grid">__CHART_CARDS__</div></section>
 <section class="method"><article><h2>منهجية العرض</h2><p>لكل مؤشر قيمة وفترة مرجعية ووحدة قياس ورابط مصدر مباشر. لا تُعرض القيمة بوصفها موثقة ما لم يتوفر مرجع يمكن للقارئ فتحه. المقارنات الدولية تحتاج إلى توحيد التعريفات والفترات قبل نشرها.</p><ul><li>القيمة الفارغة تعني أن البيانات لم تُراجع وتُعتمد بعد.</li><li>تاريخ التحديث الحالي للبيانات: __UPDATED__.</li><li>المشروع مستقل ولا يمثل الجهات المذكورة.</li></ul></article>
 <article><h2>مصادر للرجوع والتحقق</h2><p>تُستخدم هذه البوابات للبحث عن السلاسل الأصلية، ولا يعني إدراجها أن الأرقام قد جُمعت أو تحققت بعد.</p><div class="sources"><a href="https://www.hcp.ma/" target="_blank" rel="noopener">المندوبية السامية للتخطيط</a><a href="https://www.bkam.ma/" target="_blank" rel="noopener">بنك المغرب</a><a href="https://data.worldbank.org/country/morocco" target="_blank" rel="noopener">البنك الدولي</a><a href="https://www.imf.org/en/Countries/MAR" target="_blank" rel="noopener">صندوق النقد الدولي</a></div></article></section></main>
-<footer class="wrap"><span>مؤشر المواطن المغربي · مشروع مفتوح المصدر</span><span>بُنيت الصفحة من بيانات المشروع المحلية · لا تتبع المستخدم</span></footer>
+<footer class="wrap"><span>مؤشر المواطن المغربي · مشروع مفتوح المصدر</span><span class="sources"><a href="changelog/">سجل التغييرات</a><a href="feed.xml">RSS</a><a href="atom.xml">Atom</a></span></footer>
 <script>__SCRIPT__</script>
 </body></html>'''
 
@@ -170,6 +454,22 @@ for(const [id,series] of Object.entries(trendData)){
         encoding="utf-8",
     )
     print(f"Generated {api_file.relative_to(ROOT)} ({api_file.stat().st_size} bytes)")
+
+    entries = change_entries(data)
+    rss_file = OUTPUT_FILE.parent / "feed.xml"
+    atom_file = OUTPUT_FILE.parent / "atom.xml"
+    changelog_file = OUTPUT_FILE.parent / "changelog" / "index.html"
+    changelog_json = OUTPUT_FILE.parent / "api" / "v1" / "changelog.json"
+    changelog_file.parent.mkdir(parents=True, exist_ok=True)
+    rss_file.write_text(render_rss(entries), encoding="utf-8")
+    atom_file.write_text(render_atom(entries), encoding="utf-8")
+    changelog_file.write_text(render_changelog_page(entries), encoding="utf-8")
+    changelog_json.write_text(
+        json.dumps({"entries": entries}, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
+    for generated in (rss_file, atom_file, changelog_file, changelog_json):
+        print(f"Generated {generated.relative_to(ROOT)} ({generated.stat().st_size} bytes)")
 
 
 if __name__ == "__main__":

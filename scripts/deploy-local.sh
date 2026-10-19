@@ -35,6 +35,11 @@ REMOTE_MAIN="$(git rev-parse "refs/remotes/$REMOTE_NAME/main")"
 [[ "$LOCAL_MAIN" == "$REMOTE_MAIN" ]] \
   || fail "نسختك المحلية من main ليست مطابقة لـorigin/main. اسحب آخر التغييرات ثم أعد المحاولة."
 
+if [[ "$(git rev-parse --is-shallow-repository)" == "true" ]]; then
+  git fetch --quiet --unshallow "$REMOTE_NAME" main \
+    || fail "تعذر استكمال سجل Git المطلوب لتوليد سجل التغييرات."
+fi
+
 "$PYTHON_BIN" "$ROOT_DIR/src/generator.py"
 [[ -s "$OUTPUT_DIR/index.html" ]] || fail "لم يُنشأ output/index.html."
 
